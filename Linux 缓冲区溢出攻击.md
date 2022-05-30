@@ -32,7 +32,7 @@ set disassembly-flavor intel
 ｜             |    栈帧    |           ｜
 +--------------------------------------+
 低内存地址      ESP         EBP      高内存地址
-0x11111111									0xfffffff0
+0x11111111							0xfffffff0
 ```
 
 ## 3 函数调用过程
@@ -296,7 +296,7 @@ eip            0x41414141          0x41414141
 ｜         ｜ ESP |  name  ｜ EBP | EIP| temp  ｜
 +----------------------------------------------+
 低内存地址                                 高内存地址
-0x11111111									       0xfffffff0
+0x11111111								 0xfffffff0
 ```
 
 通过源码，我们知道在 greeting 函数中的 strcpy()函数之后有一个 printf() 函数调用，这个printf 又调用 libc 库中的 vfprintf()，vfprintf() 函数又调用 strlen。这里进行了多次嵌套函数调用，因此存在多个栈帧，每一个栈帧都被压入栈中。当溢出时，可能会导致传入函数的参数被破坏掉，上述溢出不仅写入旧的 eip，还将函数参数覆盖了。由于 printf() 函数会使用 temp，因此会遇到问题。下面使用gdb验证。
@@ -366,7 +366,7 @@ Breakpoint 1, greeting (temp2=0xffffd400 "\v") at meet.c:9
 ｜         ｜ ESP |  name  ｜ EBP | EIP| temp  ｜
 +----------------------------------------------+
 低内存地址                   当前EBP         高内存地址
-0x11111111									       0xfffffff0
+0x11111111							      0xfffffff0
 ```
 
 
@@ -746,7 +746,7 @@ cc -ggdb -O0 -fno-stack-protector -zexecstack -mpreferred-stack-boundary=2 -m32 
 ｜                             |                                        |
 ｜                             |                                        |
 低内存地址                   shellcode 地址                            高内存地址
-0x11111111									                                   0xffffdff8
+0x11111111									                         0xffffdff8
 ```
 
 在 Debian 系统下，它是`0xffffdff8`，其它Linux发行版可能有差异。获取该地址的方法如下：
